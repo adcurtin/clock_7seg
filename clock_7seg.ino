@@ -1,4 +1,3 @@
-
 #include "LedControl.h"
 #include <Wire.h>
 #include <TimeLib.h>
@@ -6,17 +5,21 @@
 
 
 /*
- Now we need a LedControl to work with.
- ***** These pin numbers will probably not work with your hardware *****
- pin 2 is connected to the DataIn
- pin 4 is connected to the CLK
- pin 3 is connected to LOAD
- We have only a single MAX72XX.
- */
+Now we need a LedControl to work with.
+***** These pin numbers will probably not work with your hardware *****
+pin 2 is connected to the DataIn
+pin 4 is connected to the CLK
+pin 3 is connected to LOAD
+We have only a single MAX72XX.
+*/
 LedControl lc=LedControl(2,4,3,1);
 
-// unsigned long delaytime=250;
-int intensity = 15;
+uint8_t hour_high = 0;
+uint8_t hour_low = 0;
+uint8_t minute_high = 0;
+uint8_t minute_low = 0;
+uint8_t second_high = 0;
+uint8_t second_low = 0;
 
 void setup() {
     Serial.begin(9600);
@@ -24,61 +27,43 @@ void setup() {
     setSyncProvider(RTC.get);
     setSyncInterval(3600); // sync every hour, hopefully before clock gets 1s off
 
-    /*
-     The MAX72XX is in power-saving mode on startup,
-     we have to do a wakeup call
-     */
-    lc.shutdown(0,false);
+    lc.shutdown(0,false); //start the max7219
     lc.setIntensity(0,15);
     lc.clearDisplay(0);
-    pinMode(13, OUTPUT);
 }
 
 void loop() {
     digitalClockDisplay();
-
-    //setDigit(chip, digit_position, number, dot);
-    // lc.setDigit(0,,i,false);
-    if (intensity == 0){
-        intensity = 15;
-    }
-
-
-    //setLed(chip, row, column, state);
-    lc.setLed(0, 4, 0, 1); //DP4
-    lc.setLed(0, 0, 4, 0); //D0
-    lc.setIntensity(0,15);
-    digitalWrite(13, LOW);
     delay(1000);
-    lc.setLed(0, 4, 0, 0); //DP4
-    lc.setLed(0, 0, 4, 1); //D0
-    lc.setIntensity(0,8);
-    digitalWrite(13, HIGH);
-    delay(1000);
-    digitalWrite(13, LOW);
-    lc.clearDisplay(0);
-    delay(1000);
-
 }
 
 void digitalClockDisplay(){
-  // digital clock display of the time
-  Serial.print(hour());
-  printDigits(minute());
-  printDigits(second());
-  Serial.print(" ");
-  Serial.print(day());
-  Serial.print(" ");
-  Serial.print(month());
-  Serial.print(" ");
-  Serial.print(year());
-  Serial.println();
-}
+    hour_high = hour() / 10;
+    hour_low = hour() % 10;
 
-void printDigits(int digits){
-  // utility function for digital clock display: prints preceding colon and leading 0
-  Serial.print(":");
-  if(digits < 10)
-    Serial.print('0');
-  Serial.print(digits);
+    minute_high = minute() / 10;
+    minute_low = minute() % 10;
+
+    second_high = second() / 10;
+    second_low = second() % 10;
+
+
+    lc.setDigit(0, 0, hour_high, false);
+    lc.setDigit(0, 1, hour_low, false);
+    lc.setDigit(0, 2, minute_high, false);
+    lc.setDigit(0, 3, minute_low, false);
+    // lc.setDigit(0, 4, second_high, false);
+    // lc.setDigit(0, 5, second_low, false);
+
+
+    //setDigit(chip, digit_position, number, dot);
+    // lc.setDigit(0,,i,false);
+    Serial.print(hour_high);
+    Serial.print(hour_low);
+    Serial.print(":");
+    Serial.print(minute_high);
+    Serial.print(minute_low);
+    Serial.print(":");
+    Serial.print(second_high);
+    Serial.println(second_low);
 }
