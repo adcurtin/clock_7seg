@@ -27,19 +27,31 @@ void setup() {
     setSyncProvider(RTC.get);
     setSyncInterval(3600); // sync every hour, hopefully before clock gets 1s off
 
+    lc.setScanLimit(0,3); //only display on first 4 digits, to get higher brightness
     lc.shutdown(0,false); //start the max7219
     lc.setIntensity(0,15);
     lc.clearDisplay(0);
 }
 
 void loop() {
+//     lc.setLed(0, 4, 0, 1); //DP4
+//     lc.setLed(0, 0, 4, 1); //D0
+//     delay(1000);
+//     lc.setLed(0, 4, 0, 0); //DP4
+//     lc.setLed(0, 0, 4, 0); //D0
     digitalClockDisplay();
     delay(1000);
 }
 
 void digitalClockDisplay(){
-    hour_high = hour() / 10;
-    hour_low = hour() % 10;
+    uint8_t cur_hour = hour();
+
+
+    if (cur_hour > 12){ cur_hour -= 12; } //12 hour mode
+    if (cur_hour == 0){ cur_hour = 12; } //midnight fix
+
+    hour_high = cur_hour / 10;
+    hour_low = cur_hour % 10;
 
     minute_high = minute() / 10;
     minute_low = minute() % 10;
@@ -49,6 +61,9 @@ void digitalClockDisplay(){
 
 
     lc.setDigit(0, 0, hour_high, false);
+    if (hour_high == 0) {
+        lc.setChar(0, 0, ' ', false); //clear first digit
+    }
     lc.setDigit(0, 1, hour_low, false);
     lc.setDigit(0, 2, minute_high, false);
     lc.setDigit(0, 3, minute_low, false);
